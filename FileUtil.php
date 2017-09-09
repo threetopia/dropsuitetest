@@ -7,7 +7,8 @@
  */
 class FileUtil
 {
-    private $filesData = [];
+    private $filesData      = [];
+    private $filesCountData = [];
     
     public function __construct($directory)
     {
@@ -39,8 +40,10 @@ class FileUtil
                         continue;
                     }
                     
-                    $content                    = file_get_contents($key);
-                    $this->filesData[$content]  = (isset($this->filesData[$content])) ? $this->filesData[$content] + 1 : 1;
+                    $content                        = file_get_contents($key);
+                    $hash                           = sha1_file($key);
+                    $this->filesData[$hash]         = $content;
+                    $this->filesCountData[$hash]    = (isset($this->filesCountData[$hash])) ? $this->filesCountData[$hash] + 1 : 1;
                 } else {
                     $this->scanDirectory($key);
                 }
@@ -55,10 +58,10 @@ class FileUtil
      */
     public function getFileWithMostSameContent()
     {
-        arsort($this->filesData);
-        $content = key($this->filesData);
+        arsort($this->filesCountData);
+        $hash = key($this->filesCountData);
         
-        return $content . ' ' . $this->filesData[$content];
+        return $this->filesData[$hash] . ' ' . $this->filesCountData[$hash];
     }
     
     /**
@@ -69,8 +72,8 @@ class FileUtil
     public function getFileWithSameContent()
     {
         $html = '';
-        foreach ($this->filesData as $content => $count) {
-            $html .= $content . ' ' . $count . '<br>';
+        foreach ($this->filesData as $hash => $content) {
+            $html .= $content . ' ' . $this->filesCountData[$hash] . '<br>';
         }
         
         return $html;
